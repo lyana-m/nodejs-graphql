@@ -5,10 +5,7 @@ import { UserType } from './user.js';
 import { ProfileType } from './profile.js';
 import { MemberType, MemberTypeIdEnum } from './memberType.js';
 import { UUIDType } from './uuid.js';
-
-type ArgsType = {
-  id: string;
-};
+import { ArgsType } from './common.js';
 
 export const QueryType = new GraphQLObjectType({
   name: 'Query',
@@ -56,10 +53,11 @@ export const QueryType = new GraphQLObjectType({
           where: {
             id,
           },
-          include: { posts: true, profile: { include: { memberType: true } } },
+          include: {
+            posts: true,
+            profile: { include: { memberType: true } },
+          },
         });
-
-        console.log('user', user);
 
         if (!user) {
           return null;
