@@ -42,7 +42,9 @@ export const QueryType = new GraphQLObjectType({
       type: new GraphQLList(UserType),
       description: 'Users query',
       resolve: async (_, args, contex: PrismaClient) => {
-        return await contex.user.findMany();
+        return await contex.user.findMany({
+          include: { posts: true, profile: { include: { memberType: true } } },
+        });
       },
     },
     user: {
@@ -54,19 +56,16 @@ export const QueryType = new GraphQLObjectType({
           where: {
             id,
           },
+          include: { posts: true, profile: { include: { memberType: true } } },
         });
+
+        console.log('user', user);
 
         if (!user) {
           return null;
         }
 
-        const profile = await contex.profile.findUnique({
-          where: {
-            userId: id,
-          },
-        });
-
-        return { id, profile };
+        return user;
       },
     },
     profiles: {
