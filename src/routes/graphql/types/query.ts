@@ -24,12 +24,18 @@ export const QueryType = new GraphQLObjectType({
       type: PostType,
       description: 'Post by id query',
       args: { id: { type: new GraphQLNonNull(UUIDType) } },
-      resolve: async (_, {id}: ArgsType, contex: PrismaClient) => {
-        return await contex.post.findUnique({
+      resolve: async (_, { id }: ArgsType, contex: PrismaClient) => {
+        const post = await contex.post.findUnique({
           where: {
             id,
           },
         });
+
+        if (!post) {
+          return null;
+        }
+
+        return post;
       },
     },
     users: {
@@ -43,27 +49,44 @@ export const QueryType = new GraphQLObjectType({
       type: UserType,
       description: 'User by id query',
       args: { id: { type: new GraphQLNonNull(UUIDType) } },
-      resolve: async (_, {id}: ArgsType, contex: PrismaClient) => {
-        return await contex.user.findUnique({
+      resolve: async (_, { id }: ArgsType, contex: PrismaClient) => {
+        const user = await contex.user.findUnique({
           where: {
             id,
           },
         });
+
+        if (!user) {
+          return null;
+        }
+
+        const profile = await contex.profile.findUnique({
+          where: {
+            userId: id,
+          },
+        });
+
+        return { id, profile };
       },
     },
     profiles: {
       type: new GraphQLList(ProfileType),
       description: 'Profiles query',
       resolve: async (_, args, contex: PrismaClient) => {
-        console.log('here');
-        return await contex.profile.findMany();
+        const profile = await contex.profile.findMany();
+
+        if (!profile) {
+          return null;
+        }
+
+        return profile;
       },
     },
     profile: {
       type: ProfileType,
       description: 'Profile by id query',
       args: { id: { type: new GraphQLNonNull(UUIDType) } },
-      resolve: async (_, {id}: ArgsType, contex: PrismaClient) => {
+      resolve: async (_, { id }: ArgsType, contex: PrismaClient) => {
         return await contex.profile.findUnique({
           where: {
             id,
@@ -82,7 +105,7 @@ export const QueryType = new GraphQLObjectType({
       type: MemberType,
       description: 'MemberType by id query',
       args: { id: { type: new GraphQLNonNull(MemberTypeIdEnum) } },
-      resolve: async (_, {id}: ArgsType, contex: PrismaClient) => {
+      resolve: async (_, { id }: ArgsType, contex: PrismaClient) => {
         return await contex.memberType.findUnique({
           where: {
             id,
