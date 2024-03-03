@@ -1,6 +1,7 @@
 import { GraphQLList, GraphQLObjectType } from 'graphql';
 import { PrismaClient } from '@prisma/client';
 import { PostType } from './post.js';
+import { UserType } from './user.js';
 
 export const QueryType = new GraphQLObjectType({
   name: 'Query',
@@ -12,5 +13,12 @@ export const QueryType = new GraphQLObjectType({
         return await contex.post.findMany();
       },
     },
+    users: {
+      type: new GraphQLList(UserType),
+      description: 'Users query',
+      resolve: async (_, args, contex: PrismaClient) => {
+        return await contex.user.findMany();
+      },
+    }
   },
 });
