@@ -5,3 +5,8 @@ export type ArgsType = {
 export type MutationArgsType<T> = {
   dto: T;
 };
+
+export type SubscriptionArgsType = {
+  userId: string;
+  authorId: string;
+}

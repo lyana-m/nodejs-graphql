@@ -1,4 +1,4 @@
-import { GraphQLNonNull, GraphQLObjectType } from 'graphql';
+import { GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
 import { PrismaClient } from '@prisma/client';
 import { ChangePostInput, CreatePostInput, NewPost, PostType } from './post.js';
 import { ChangeUserInput, CreateUserInput, NewUser, UserType } from './user.js';
@@ -8,7 +8,7 @@ import {
   NewProfile,
   ProfileType,
 } from './profile.js';
-import { ArgsType, MutationArgsType } from './common.js';
+import { ArgsType, MutationArgsType, SubscriptionArgsType } from './common.js';
 import { UUIDType } from './uuid.js';
 
 export const MutationType = new GraphQLObjectType({
@@ -102,6 +102,54 @@ export const MutationType = new GraphQLObjectType({
         contex: PrismaClient,
       ) => {
         return contex.profile.update({ where: { id }, data: dto });
+      },
+    },
+    subscribeTo: {
+      type: UserType,
+      args: {
+        userId: { type: new GraphQLNonNull(UUIDType) },
+        authorId: { type: new GraphQLNonNull(UUIDType) },
+      },
+      resolve: async (
+        _,
+        { userId, authorId }: SubscriptionArgsType,
+        contex: PrismaClient,
+      ) => {
+        await contex.subscribersOnAuthors.create({
+          data: {
+            subscriberId: userId,
+            authorId: authorId,
+          },
+        });
+
+        return await contex.user.findUnique({
+          where: {
+            id: userId,
+          },
+        });
+      },
+    },
+    unsubscribeFrom: {
+      type: GraphQLString,
+      args: {
+        userId: { type: new GraphQLNonNull(UUIDType) },
+        authorId: { type: new GraphQLNonNull(UUIDType) },
+      },
+      resolve: async (
+        _,
+        { userId, authorId }: SubscriptionArgsType,
+        contex: PrismaClient,
+      ) => {
+        await contex.subscribersOnAuthors.delete({
+          where: {
+            subscriberId_authorId: {
+              subscriberId: userId,
+              authorId: authorId,
+            },
+          },
+        });
+
+        return 'You are successfully unsubscribed';
       },
     },
   },
