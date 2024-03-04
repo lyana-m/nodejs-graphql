@@ -1,8 +1,13 @@
 import { GraphQLNonNull, GraphQLObjectType } from 'graphql';
 import { PrismaClient } from '@prisma/client';
-import { CreatePostInput, NewPost, PostType } from './post.js';
-import { CreateUserInput, NewUser, UserType } from './user.js';
-import { CreateProfileInput, NewProfile, ProfileType } from './profile.js';
+import { ChangePostInput, CreatePostInput, NewPost, PostType } from './post.js';
+import { ChangeUserInput, CreateUserInput, NewUser, UserType } from './user.js';
+import {
+  ChangeProfileInput,
+  CreateProfileInput,
+  NewProfile,
+  ProfileType,
+} from './profile.js';
 import { ArgsType, MutationArgsType } from './common.js';
 import { UUIDType } from './uuid.js';
 
@@ -33,7 +38,7 @@ export const MutationType = new GraphQLObjectType({
     deletePost: {
       type: new GraphQLNonNull(UUIDType),
       args: { id: { type: new GraphQLNonNull(UUIDType) } },
-      resolve: async (_, { id }: ArgsType, contex) => {
+      resolve: async (_, { id }: ArgsType, contex: PrismaClient) => {
         const post = await contex.post.delete({ where: { id } });
 
         return post.id;
@@ -42,7 +47,7 @@ export const MutationType = new GraphQLObjectType({
     deleteUser: {
       type: new GraphQLNonNull(UUIDType),
       args: { id: { type: new GraphQLNonNull(UUIDType) } },
-      resolve: async (_, { id }: ArgsType, contex) => {
+      resolve: async (_, { id }: ArgsType, contex: PrismaClient) => {
         const user = await contex.user.delete({ where: { id } });
 
         return user.id;
@@ -51,10 +56,52 @@ export const MutationType = new GraphQLObjectType({
     deleteProfile: {
       type: new GraphQLNonNull(UUIDType),
       args: { id: { type: new GraphQLNonNull(UUIDType) } },
-      resolve: async (_, { id }: ArgsType, contex) => {
+      resolve: async (_, { id }: ArgsType, contex: PrismaClient) => {
         const profile = await contex.profile.delete({ where: { id } });
 
         return profile.id;
+      },
+    },
+    changePost: {
+      type: PostType,
+      args: {
+        id: { type: new GraphQLNonNull(UUIDType) },
+        dto: { type: new GraphQLNonNull(ChangePostInput) },
+      },
+      resolve: (
+        _,
+        { id, dto }: ArgsType & MutationArgsType<NewPost>,
+        contex: PrismaClient,
+      ) => {
+        return contex.post.update({ where: { id }, data: dto });
+      },
+    },
+    changeUser: {
+      type: UserType,
+      args: {
+        id: { type: new GraphQLNonNull(UUIDType) },
+        dto: { type: new GraphQLNonNull(ChangeUserInput) },
+      },
+      resolve: (
+        _,
+        { id, dto }: ArgsType & MutationArgsType<NewUser>,
+        contex: PrismaClient,
+      ) => {
+        return contex.user.update({ where: { id }, data: dto });
+      },
+    },
+    changeProfile: {
+      type: ProfileType,
+      args: {
+        id: { type: new GraphQLNonNull(UUIDType) },
+        dto: { type: new GraphQLNonNull(ChangeProfileInput) },
+      },
+      resolve: (
+        _,
+        { id, dto }: ArgsType & MutationArgsType<NewProfile>,
+        contex: PrismaClient,
+      ) => {
+        return contex.profile.update({ where: { id }, data: dto });
       },
     },
   },
